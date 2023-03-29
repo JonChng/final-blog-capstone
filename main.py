@@ -1,5 +1,13 @@
-from flask import Flask, render_template
+from flask import Flask, render_template, request
 import requests
+import smtplib
+import os
+import dotenv
+
+dotenv.load_dotenv()
+email_= os.environ['EMAIL']
+password_ = os.environ['PASSWORD']
+
 
 app = Flask(__name__)
 
@@ -24,6 +32,23 @@ def post(id):
         if post['id'] == int(id):
             to_post = post
     return render_template("post.html", posted = to_post)
+
+@app.route('/form-entry', methods=["POST"])
+def receive_data():
+    data = request.form
+    msg = f"Subject: New Contact us!\n\n" \
+          f"Name: {data['name']}\n" \
+          f"Email: {data['email']}\n" \
+          f"HP: {data['hp']}\n" \
+          f"Message: {data['message']}"
+
+    with smtplib.SMTP("smtp.gmail.com") as connection:
+        connection.starttls()
+        connection.login(user=email_, password=password_)
+        connection.sendmail(to_addrs=os.environ["TO"], from_addr=email_, msg=msg)
+
+    return "<h1>Successfully Sent Message!</h1>"
+
 
 
 
